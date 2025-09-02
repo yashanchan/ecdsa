@@ -13,27 +13,13 @@ A full-stack wallet simulator demonstrating digital signatures with **Elliptic C
 
 ## Technology
 
-| Layer        | Tech Stack                                       |
+| Layer        | Tech Stack                                   |
 |--------------|----------------------------------------------|
 | Frontend     | React, Vite, Axios, SCSS                     |
 | Backend      | Node.js, Express                             |
 | Crypto       | ethereum-cryptography (secp256k1, keccak256) |
-| API          | REST                               |
+| API          | REST                                         |
 
-
-## Endpoints
-
-- GET `/balance/:address`
-  - Returns `{ balance }`
-
-- POST `/verify`
-  - Body: `{ sender, recipient, amount, signature, recovery }`
-  - Returns: `{ valid, signer }` or `{ valid: false, message }`
-
-- POST `/send`
-  - Body: `{ sender, recipient, amount, signature, recovery }`
-  - Verifies signature and validations, then moves balances
-  - Returns: `{ balance }` (new sender balance)
 
 ## Run locally
 
