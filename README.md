@@ -18,24 +18,8 @@ A full-stack wallet simulator demonstrating digital signatures with **Elliptic C
 | Frontend     | React, Vite, Axios, SCSS                     |
 | Backend      | Node.js, Express                             |
 | Crypto       | ethereum-cryptography (secp256k1, keccak256) |
-| API          | REST over HTTP                               |
+| API          | REST                               |
 
-## How signing works
-
-1. Client builds a message: `{ sender, recipient, amount }` (JSON string)
-2. Client hashes it with Keccak256 and signs the hash using the sender's private key, producing `signature` and `recovery` bit
-3. Client sends `{ sender, recipient, amount, signature, recovery }` to the server
-4. Server recomputes the hash, recovers the public key from `(hash, signature, recovery)`, derives the address, and verifies it matches `sender`
-5. If valid and balances/validation pass, the transfer is applied
-
-This prevents tampering: any change to recipient/amount alters the message hash, making the signature invalid for the claimed sender.
-
-## Validation rules
-
-- Address format must match `^0x[0-9a-fA-F]{40}$`
-- Recipient must be a known address in `balances` (no auto-creation)
-- Amount must be a positive number
-- Signature must correspond to the `sender` for the exact `{ sender, recipient, amount }`
 
 ## Endpoints
 
