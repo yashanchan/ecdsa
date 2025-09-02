@@ -1,45 +1,88 @@
 ## ECDSA Wallet WebApp
 
-A full-stack cryptographic wallet simulator that demonstrates key aspects of blockchain wallet operations using **Elliptic Curve Digital Signature Algorithm (ECDSA)** over the `secp256k1` curve — the same cryptographic foundation used in Ethereum.
-This project allows users to generate and interact with public/private key pairs, check balances, and transfer funds between wallets all in a simple and secure environment.
+A full-stack wallet simulator demonstrating digital signatures with **Elliptic Curve Digital Signature Algorithm (ECDSA)** over `secp256k1` (same curve as Ethereum). The app derives addresses from private keys, signs transfer intents client-side, and verifies signatures on the server before moving balances.
 
-## Project Overview
+## Features
 
-This WebApp allows users to:
+- Derive wallet address from a private key
+- View on-chain-like balance for a given address
+- Sign transfers client-side using `secp256k1`
+- Server verifies signatures (public key recovery) before applying transfers
+- Input validation (addresses, amounts)
+- Implemented `/verify` endpoint to check signatures without moving funds
 
-- Generate ECDSA-based key pairs (public/private)
-- Input a private key to derive the wallet address
-- View wallet balance
-- Transfer funds to other wallets using their address
+## Technology
 
-## 🛠️ Technologies Used
+| Layer        | Tech Stack                                       |
+|--------------|----------------------------------------------|
+| Frontend     | React, Vite, Axios, SCSS                     |
+| Backend      | Node.js, Express                             |
+| Crypto       | ethereum-cryptography (secp256k1, keccak256) |
+| API          | REST over HTTP                               |
 
-| Layer        | Stack                                      |
-|--------------|---------------------------------------------|
-| Frontend     | React, Vite, Axios, SCSS                    |
-| Backend      | Node.js, Express                            |
-| Crypto       | ethereum-cryptography (secp256k1, keccak256)|
-| Communication| REST API (Axios-based)                      |
+## How signing works
 
+1. Client builds a message: `{ sender, recipient, amount }` (JSON string)
+2. Client hashes it with Keccak256 and signs the hash using the sender's private key, producing `signature` and `recovery` bit
+3. Client sends `{ sender, recipient, amount, signature, recovery }` to the server
+4. Server recomputes the hash, recovers the public key from `(hash, signature, recovery)`, derives the address, and verifies it matches `sender`
+5. If valid and balances/validation pass, the transfer is applied
 
-## Setup Instructions
- 
-### Client
+This prevents tampering: any change to recipient/amount alters the message hash, making the signature invalid for the claimed sender.
 
-The client folder contains a react app using [vite]. To get started, follow these steps:
+## Validation rules
 
-1. Open up a terminal in the `/client` folder
-2. Run `npm install` to install all the dependencies
-3. Run `npm run dev` to start the application 
-4. Now you should be able to visit the app at http://localhost:5173/
+- Address format must match `^0x[0-9a-fA-F]{40}$`
+- Recipient must be a known address in `balances` (no auto-creation)
+- Amount must be a positive number
+- Signature must correspond to the `sender` for the exact `{ sender, recipient, amount }`
 
-### Server
+## Endpoints
 
-The server folder contains a Node.js server using [express]. To run the server, follow these steps:
+- GET `/balance/:address`
+  - Returns `{ balance }`
 
-1. Open a terminal within the `/server` folder 
-2. Run `npm install` to install all the dependencies 
-3. Run `npm i -g nodemon` and then run `nodemon index` instead of `node index` to automatically restart the server on any changes
+- POST `/verify`
+  - Body: `{ sender, recipient, amount, signature, recovery }`
+  - Returns: `{ valid, signer }` or `{ valid: false, message }`
 
-The application should connect to the default server port (3042) automatically!
+- POST `/send`
+  - Body: `{ sender, recipient, amount, signature, recovery }`
+  - Verifies signature and validations, then moves balances
+  - Returns: `{ balance }` (new sender balance)
+
+## Run locally
+
+Open two terminals.
+
+- Server
+  ```bash
+  cd server
+  npm install
+  npx nodemon index   # or: node index
+  ```
+
+- Client
+  ```bash
+  cd client
+  npm install
+  npm run dev
+  ```
+
+Visit `http://localhost:5173`.
+
+## Generate keys
+
+Use the helper script to create a private key, public key, and derived address:
+
+```bash
+node server/scripts/generate.js
+```
+
+Paste the PRIVATE KEY into the app. The address will appear and its balance will be fetched. Use another known address as the recipient.
+
+## Notes
+
+- The server holds an in-memory `balances` map; restart resets balances
+- For production-grade use, add checksum validation, nonce/replay protection, and persistence
 
