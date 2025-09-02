@@ -51,8 +51,4 @@ node server/scripts/generate.js
 
 Paste the PRIVATE KEY into the app. The address will appear and its balance will be fetched. Use another known address as the recipient.
 
-## Notes
-
-- The server holds an in-memory `balances` map; restart resets balances
-- For production-grade use, add checksum validation, nonce/replay protection, and persistence
 
